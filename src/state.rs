@@ -29,10 +29,17 @@ pub struct GroupData {
 pub const GROUPS: Map<&[u8], GroupData> = Map::new("groups");
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub enum MembershipStatus {
+    Regular,
+    Admin,
+    SuperAdmin
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct MembershipData {
     pub person_id: String,
     pub group_id: String,
-    pub admin: bool
+    pub membership_status: MembershipStatus
 }
 
 pub const MEMBERSHIPS: Map<&[u8], MembershipData> = Map::new("memberships");

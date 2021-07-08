@@ -7,7 +7,7 @@ use crate::msg::{CountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 use crate::state::{PersonData, PEOPLE};
 use crate::state::{GroupData, GROUPS};
-use crate::state::{MembershipData, MEMBERSHIPS};
+use crate::state::{MembershipStatus, MembershipData, MEMBERSHIPS};
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -164,13 +164,13 @@ mod tests {
         let membership1_data = MembershipData {
             person_id: person_id.clone(),
             group_id: group1_id.clone(),
-            admin: false
+            membership_status: MembershipStatus::Regular
         };
         let membership2_id = "membership2".to_string();
         let membership2_data = MembershipData {
             person_id: person_id.clone(),
             group_id: group2_id.clone(),
-            admin: true
+            membership_status: MembershipStatus::Admin
         };
 
         PEOPLE.save(&mut store, person_id.as_ref(), &person_data).unwrap();
@@ -195,6 +195,9 @@ mod tests {
 
         // how do I get all John's memberships?
         // in Ruby/Mongoid I would do something like Membership.where(person_id: 'john')
+
+        // how do I get all memberships that are Admins or SuperAdmins?
+        // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [Admin, SuperAdmin])
 
     }
 
