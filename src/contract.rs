@@ -193,11 +193,26 @@ mod tests {
         let loaded_membership2 = MEMBERSHIPS.key(membership2_id.as_ref()).load(&store).unwrap();
         assert_eq!(membership2_data, loaded_membership2);
 
-        // how do I get all John's memberships?
+        // how do I get all the memberships of a person?
         // in Ruby/Mongoid I would do something like Membership.where(person_id: 'john')
+        //
+        // let person_memberships = MEMBERSHIPS.where(person_id: person_id)
+        // assert_eq!(person_memberships, [loaded_membership1, loaded_membership2])
+
+        // similarly, how do I get all the memberships of a group?
+        // in Ruby/Mongoid I would do something like Membership.where(group_id: 'dandelion')
+        //
+        // let group1_memberships = MEMBERSHIPS.where(group_id: group1_id)
+        // assert_eq!(group1_memberships, [loaded_membership1])
+        //
+        // let group2_memberships = MEMBERSHIPS.where(group_id: group2_id)
+        // assert_eq!(group2_memberships, [loaded_membership2])
 
         // how do I get all memberships that are Admins or SuperAdmins?
-        // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [Admin, SuperAdmin])
+        // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
+        //
+        // let admin_memberships = MEMBERSHIPS.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
+        // assert_eq!(admin_memberships, [loaded_membership2])
 
     }
 
