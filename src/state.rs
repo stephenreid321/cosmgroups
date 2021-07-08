@@ -31,17 +31,18 @@ pub struct Group {
 pub const GROUPS: Map<&[u8], Group> = Map::new("groups");
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub enum MembershipStatus {
-    Regular,
-    Admin,
-    SuperAdmin
+pub struct MembershipStatus {
+    pub status: String,
+    pub membership_ids: Vec<String>
 }
+
+pub const MEMBERSHIP_STATUSES: Map<&[u8], MembershipStatus> = Map::new("membership_statuses");
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Membership {
     pub person_id: String,
     pub group_id: String,
-    pub membership_status: MembershipStatus
+    pub membership_status_id: String
 }
 
 pub const MEMBERSHIPS: Map<&[u8], Membership> = Map::new("memberships");

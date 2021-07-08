@@ -7,7 +7,9 @@ use crate::msg::{CountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 use crate::state::{Person, PEOPLE};
 use crate::state::{Group, GROUPS};
-use crate::state::{MembershipStatus, Membership, MEMBERSHIPS};
+use crate::state::{Membership, MEMBERSHIPS};
+use crate::state::{MembershipStatus, MEMBERSHIP_STATUSES};
+
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -153,6 +155,9 @@ mod tests {
         let group2_id = "autopia".to_string();
         let membership1_id = "membership1".to_string();
         let membership2_id = "membership2".to_string();
+        let membership_status_regular_id = "regular".to_string();
+        let membership_status_admin_id = "admin".to_string();
+        let membership_status_superadmin_id = "superadmin".to_string();
 
         let person = Person {
             name: "John".to_string(),
@@ -170,16 +175,31 @@ mod tests {
             membership_ids: vec![membership2_id.clone()]
         };
 
+        let membership_status_regular = MembershipStatus {
+            status: "Regular".to_string(),
+            membership_ids: vec![membership1_id.clone()]
+        };
+
+        let membership_status_admin = MembershipStatus {
+            status: "Admin".to_string(),
+            membership_ids: vec![membership2_id.clone()]
+        };
+
+        let membership_status_superadmin = MembershipStatus {
+            status: "Super Admin".to_string(),
+            membership_ids: vec![]
+        };
+
         let membership1 = Membership {
             person_id: person_id.clone(),
             group_id: group1_id.clone(),
-            membership_status: MembershipStatus::Regular
+            membership_status_id: membership_status_regular_id.clone()
         };
 
         let membership2 = Membership {
             person_id: person_id.clone(),
             group_id: group2_id.clone(),
-            membership_status: MembershipStatus::Admin
+            membership_status_id: membership_status_admin_id.clone()
         };
 
         PEOPLE.save(&mut store, person_id.as_ref(), &person).unwrap();
@@ -201,6 +221,18 @@ mod tests {
         MEMBERSHIPS.save(&mut store, membership2_id.as_ref(), &membership2).unwrap();
         let loaded_membership2 = MEMBERSHIPS.key(membership2_id.as_ref()).load(&store).unwrap();
         assert_eq!(membership2, loaded_membership2);
+
+        MEMBERSHIP_STATUSES.save(&mut store, membership_status_regular_id.as_ref(), &membership_status_regular).unwrap();
+        let loaded_membership_status_regular = MEMBERSHIP_STATUSES.key(membership_status_regular_id.as_ref()).load(&store).unwrap();
+        assert_eq!(membership_status_regular, loaded_membership_status_regular);
+
+        MEMBERSHIP_STATUSES.save(&mut store, membership_status_admin_id.as_ref(), &membership_status_admin).unwrap();
+        let loaded_membership_status_admin = MEMBERSHIP_STATUSES.key(membership_status_admin_id.as_ref()).load(&store).unwrap();
+        assert_eq!(membership_status_admin, loaded_membership_status_admin);
+
+        MEMBERSHIP_STATUSES.save(&mut store, membership_status_superadmin_id.as_ref(), &membership_status_superadmin).unwrap();
+        let loaded_membership_status_superadmin = MEMBERSHIP_STATUSES.key(membership_status_superadmin_id.as_ref()).load(&store).unwrap();
+        assert_eq!(membership_status_superadmin, loaded_membership_status_superadmin);
 
         // how do I get all the memberships of a person?
         // in Ruby/Mongoid I would do something like Membership.where(person_id: 'john')
@@ -233,18 +265,32 @@ mod tests {
         // how do I get all memberships that are Admins or SuperAdmins?
         // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
 
-        let admin_and_superadmin_memberships: Vec<_> = MEMBERSHIPS
+        let membership_status_admin_memberships: Vec<_> = membership_status_admin.membership_ids.iter().map(|membership_id| {
+            let membership = MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
+            membership
+        })
+            .collect();
+
+        let membership_status_superadmin_memberships: Vec<_> = membership_status_superadmin.membership_ids.iter().map(|membership_id| {
+            let membership = MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
+            membership
+        })
+            .collect();
+
+        let admin_and_superadmin_memberships: Vec<_> = [membership_status_admin_memberships, membership_status_superadmin_memberships].concat();
+
+        let filtered_memberships: Vec<_> = MEMBERSHIPS
             .range(&store, None, None, Order::Ascending)
             .map(|membership| {
                 let (_membership_id, membership) = membership.unwrap();
                 membership
             })
             .filter(|membership| {
-                membership.membership_status == MembershipStatus::Admin || membership.membership_status == MembershipStatus::SuperAdmin
+                membership.membership_status_id == membership_status_admin_id || membership.membership_status_id == membership_status_superadmin_id
             })
             .collect();
 
-        assert_eq!(vec![membership2], admin_and_superadmin_memberships);
+        assert_eq!(admin_and_superadmin_memberships, filtered_memberships);
 
     }
 
