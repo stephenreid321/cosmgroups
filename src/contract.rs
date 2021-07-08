@@ -147,11 +147,13 @@ mod tests {
     fn test_groups() {
 
         let mut store = MockStorage::new();
+
         let person_id = "john".to_string();
         let person_data = PersonData {
             name: "John".to_string(),
             age: 32,
         };
+
         let group1_id = "dandelion".to_string();
         let group1_data = GroupData {
             name: "Dandelion".to_string()
@@ -160,6 +162,7 @@ mod tests {
         let group2_data = GroupData {
             name: "Autopia".to_string()
         };
+        
         let membership1_id = "membership1".to_string();
         let membership1_data = MembershipData {
             person_id: person_id.clone(),
