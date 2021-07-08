@@ -239,8 +239,7 @@ mod tests {
         // edit: I think I need to cache the membership IDs in Person, don't I?
 
         let person_memberships: Vec<_> = person.membership_ids.iter().map(|membership_id| {
-                let membership = MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
-                membership
+                return MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
             })
             .collect();
 
@@ -266,14 +265,12 @@ mod tests {
         // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
 
         let membership_status_admin_memberships: Vec<_> = membership_status_admin.membership_ids.iter().map(|membership_id| {
-            let membership = MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
-            membership
+            return MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
         })
             .collect();
 
         let membership_status_superadmin_memberships: Vec<_> = membership_status_superadmin.membership_ids.iter().map(|membership_id| {
-            let membership = MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
-            membership
+            return MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
         })
             .collect();
 
