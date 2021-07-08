@@ -232,9 +232,19 @@ mod tests {
 
         // how do I get all memberships that are Admins or SuperAdmins?
         // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
-        //
-        // let admin_memberships = MEMBERSHIPS.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
-        // assert_eq!(admin_memberships, [loaded_membership2])
+
+        let admin_and_superadmin_memberships: Vec<_> = MEMBERSHIPS
+            .range(&store, None, None, Order::Ascending)
+            .map(|membership| {
+                let (_membership_id, membership) = membership.unwrap();
+                membership
+            })
+            .filter(|membership| {
+                membership.membership_status == MembershipStatus::Admin || membership.membership_status == MembershipStatus::SuperAdmin
+            })
+            .collect();
+
+        assert_eq!(vec![membership2], admin_and_superadmin_memberships);
 
     }
 
