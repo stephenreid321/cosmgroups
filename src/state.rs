@@ -14,19 +14,21 @@ pub struct State {
 pub const STATE: Item<State> = Item::new("state");
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct PersonData {
+pub struct Person {
     pub name: String,
     pub age: i32,
+    pub membership_ids: Vec<String>
 }
 
-pub const PEOPLE: Map<&[u8], PersonData> = Map::new("people");
+pub const PEOPLE: Map<&[u8], Person> = Map::new("people");
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct GroupData {
-    pub name: String
+pub struct Group {
+    pub name: String,
+    pub membership_ids: Vec<String>
 }
 
-pub const GROUPS: Map<&[u8], GroupData> = Map::new("groups");
+pub const GROUPS: Map<&[u8], Group> = Map::new("groups");
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum MembershipStatus {
@@ -36,10 +38,10 @@ pub enum MembershipStatus {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct MembershipData {
+pub struct Membership {
     pub person_id: String,
     pub group_id: String,
     pub membership_status: MembershipStatus
 }
 
-pub const MEMBERSHIPS: Map<&[u8], MembershipData> = Map::new("memberships");
+pub const MEMBERSHIPS: Map<&[u8], Membership> = Map::new("memberships");

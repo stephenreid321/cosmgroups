@@ -1,13 +1,13 @@
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, testing::MockStorage
+    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, testing::MockStorage, Order
 };
 
 use crate::error::ContractError;
 use crate::msg::{CountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
-use crate::state::{PersonData, PEOPLE};
-use crate::state::{GroupData, GROUPS};
-use crate::state::{MembershipStatus, MembershipData, MEMBERSHIPS};
+use crate::state::{Person, PEOPLE};
+use crate::state::{Group, GROUPS};
+use crate::state::{MembershipStatus, Membership, MEMBERSHIPS};
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -149,67 +149,86 @@ mod tests {
         let mut store = MockStorage::new();
 
         let person_id = "john".to_string();
-        let person_data = PersonData {
+        let group1_id = "dandelion".to_string();
+        let group2_id = "autopia".to_string();
+        let membership1_id = "membership1".to_string();
+        let membership2_id = "membership2".to_string();
+
+        let person = Person {
             name: "John".to_string(),
             age: 32,
+            membership_ids: vec![membership1_id.clone(), membership2_id.clone()]
         };
 
-        let group1_id = "dandelion".to_string();
-        let group1_data = GroupData {
-            name: "Dandelion".to_string()
+        let group1 = Group {
+            name: "Dandelion".to_string(),
+            membership_ids: vec![membership1_id.clone()]
         };
-        let group2_id = "autopia".to_string();
-        let group2_data = GroupData {
-            name: "Autopia".to_string()
+
+        let group2 = Group {
+            name: "Autopia".to_string(),
+            membership_ids: vec![membership2_id.clone()]
         };
-        
-        let membership1_id = "membership1".to_string();
-        let membership1_data = MembershipData {
+
+        let membership1 = Membership {
             person_id: person_id.clone(),
             group_id: group1_id.clone(),
             membership_status: MembershipStatus::Regular
         };
-        let membership2_id = "membership2".to_string();
-        let membership2_data = MembershipData {
+
+        let membership2 = Membership {
             person_id: person_id.clone(),
             group_id: group2_id.clone(),
             membership_status: MembershipStatus::Admin
         };
 
-        PEOPLE.save(&mut store, person_id.as_ref(), &person_data).unwrap();
+        PEOPLE.save(&mut store, person_id.as_ref(), &person).unwrap();
         let loaded_person = PEOPLE.key(person_id.as_ref()).load(&store).unwrap();
-        assert_eq!(person_data, loaded_person);
+        assert_eq!(person, loaded_person);
 
-        GROUPS.save(&mut store, group1_id.as_ref(), &group1_data).unwrap();
+        GROUPS.save(&mut store, group1_id.as_ref(), &group1).unwrap();
         let loaded_group1 = GROUPS.key(group1_id.as_ref()).load(&store).unwrap();
-        assert_eq!(group1_data, loaded_group1);
+        assert_eq!(group1, loaded_group1);
 
-        GROUPS.save(&mut store, group2_id.as_ref(), &group2_data).unwrap();
+        GROUPS.save(&mut store, group2_id.as_ref(), &group2).unwrap();
         let loaded_group2 = GROUPS.key(group2_id.as_ref()).load(&store).unwrap();
-        assert_eq!(group2_data, loaded_group2);
+        assert_eq!(group2, loaded_group2);
 
-        MEMBERSHIPS.save(&mut store, membership1_id.as_ref(), &membership1_data).unwrap();
+        MEMBERSHIPS.save(&mut store, membership1_id.as_ref(), &membership1).unwrap();
         let loaded_membership1 = MEMBERSHIPS.key(membership1_id.as_ref()).load(&store).unwrap();
-        assert_eq!(membership1_data, loaded_membership1);
+        assert_eq!(membership1, loaded_membership1);
 
-        MEMBERSHIPS.save(&mut store, membership2_id.as_ref(), &membership2_data).unwrap();
+        MEMBERSHIPS.save(&mut store, membership2_id.as_ref(), &membership2).unwrap();
         let loaded_membership2 = MEMBERSHIPS.key(membership2_id.as_ref()).load(&store).unwrap();
-        assert_eq!(membership2_data, loaded_membership2);
+        assert_eq!(membership2, loaded_membership2);
 
         // how do I get all the memberships of a person?
         // in Ruby/Mongoid I would do something like Membership.where(person_id: 'john')
-        //
-        // let person_memberships = MEMBERSHIPS.where(person_id: person_id)
-        // assert_eq!(person_memberships, [loaded_membership1, loaded_membership2])
+        // edit: I think I need to cache the membership IDs in Person, don't I?
 
-        // similarly, how do I get all the memberships of a group?
-        // in Ruby/Mongoid I would do something like Membership.where(group_id: 'dandelion')
-        //
-        // let group1_memberships = MEMBERSHIPS.where(group_id: group1_id)
-        // assert_eq!(group1_memberships, [loaded_membership1])
-        //
-        // let group2_memberships = MEMBERSHIPS.where(group_id: group2_id)
-        // assert_eq!(group2_memberships, [loaded_membership2])
+        let person_memberships: Vec<_> = person.membership_ids.iter().map(|membership_id| {
+                let membership = MEMBERSHIPS.key(membership_id.as_ref()).load(&store).unwrap();
+                membership
+            })
+            .collect();
+
+       // person_memberships.iter().for_each(|membership| {
+       //      println!("{}", membership.person_id);
+       //      println!("{}", membership.group_id);
+       //  });
+
+        let filtered_memberships: Vec<_> = MEMBERSHIPS
+            .range(&store, None, None, Order::Ascending)
+            .map(|membership| {
+                let (_membership_id, membership) = membership.unwrap();
+                membership
+            })
+            .filter(|membership| {
+                membership.person_id == person_id
+            })
+            .collect();
+
+        assert_eq!(person_memberships, filtered_memberships);
 
         // how do I get all memberships that are Admins or SuperAdmins?
         // in Ruby/Mongoid I would do something like Membership.where(:membership_status.in => [MembershipStatus::Admin, MembershipStatus::SuperAdmin])
