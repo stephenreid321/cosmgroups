@@ -6,6 +6,8 @@ use crate::error::ContractError;
 use crate::msg::{CountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 use crate::state::{PersonData, PEOPLE};
+use crate::state::{GroupData, GROUPS};
+use crate::state::{MembershipData, MEMBERSHIPS};
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -142,17 +144,57 @@ mod tests {
     }
 
     #[test]
-    fn person_test() {
+    fn test_groups() {
 
         let mut store = MockStorage::new();
+        let person_id = "john".to_string();
         let person_data = PersonData {
             name: "John".to_string(),
             age: 32,
         };
+        let group1_id = "dandelion".to_string();
+        let group1_data = GroupData {
+            name: "Dandelion".to_string()
+        };
+        let group2_id = "autopia".to_string();
+        let group2_data = GroupData {
+            name: "Autopia".to_string()
+        };
+        let membership1_id = "membership1".to_string();
+        let membership1_data = MembershipData {
+            person_id: person_id.clone(),
+            group_id: group1_id.clone(),
+            admin: false
+        };
+        let membership2_id = "membership2".to_string();
+        let membership2_data = MembershipData {
+            person_id: person_id.clone(),
+            group_id: group2_id.clone(),
+            admin: true
+        };
 
-        PEOPLE.save(&mut store, b"john", &person_data)?;
-        let loaded = PEOPLE.load(&store, b"john")?;
-        assert_eq!(person_data, loaded);
+        PEOPLE.save(&mut store, person_id.as_ref(), &person_data).unwrap();
+        let loaded_person = PEOPLE.key(person_id.as_ref()).load(&store).unwrap();
+        assert_eq!(person_data, loaded_person);
+
+        GROUPS.save(&mut store, group1_id.as_ref(), &group1_data).unwrap();
+        let loaded_group1 = GROUPS.key(group1_id.as_ref()).load(&store).unwrap();
+        assert_eq!(group1_data, loaded_group1);
+
+        GROUPS.save(&mut store, group2_id.as_ref(), &group2_data).unwrap();
+        let loaded_group2 = GROUPS.key(group2_id.as_ref()).load(&store).unwrap();
+        assert_eq!(group2_data, loaded_group2);
+
+        MEMBERSHIPS.save(&mut store, membership1_id.as_ref(), &membership1_data).unwrap();
+        let loaded_membership1 = MEMBERSHIPS.key(membership1_id.as_ref()).load(&store).unwrap();
+        assert_eq!(membership1_data, loaded_membership1);
+
+        MEMBERSHIPS.save(&mut store, membership2_id.as_ref(), &membership2_data).unwrap();
+        let loaded_membership2 = MEMBERSHIPS.key(membership2_id.as_ref()).load(&store).unwrap();
+        assert_eq!(membership2_data, loaded_membership2);
+
+        // how do I get all John's memberships?
+        // in Ruby/Mongoid I would do something like Membership.where(person_id: 'john')
 
     }
 

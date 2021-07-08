@@ -21,3 +21,18 @@ pub struct PersonData {
 
 pub const PEOPLE: Map<&[u8], PersonData> = Map::new("people");
 
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct GroupData {
+    pub name: String
+}
+
+pub const GROUPS: Map<&[u8], GroupData> = Map::new("groups");
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct MembershipData {
+    pub person_id: String,
+    pub group_id: String,
+    pub admin: bool
+}
+
+pub const MEMBERSHIPS: Map<&[u8], MembershipData> = Map::new("memberships");
