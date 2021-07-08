@@ -1,10 +1,11 @@
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, testing::MockStorage
 };
 
 use crate::error::ContractError;
 use crate::msg::{CountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
+use crate::state::{PersonData, PEOPLE};
 
 // Note, you can use StdResult in some functions where you do not
 // make use of the custom errors
@@ -139,4 +140,20 @@ mod tests {
         let value: CountResponse = from_binary(&res).unwrap();
         assert_eq!(5, value.count);
     }
+
+    #[test]
+    fn person_test() {
+
+        let mut store = MockStorage::new();
+        let person_data = PersonData {
+            name: "John".to_string(),
+            age: 32,
+        };
+
+        PEOPLE.save(&mut store, b"john", &person_data)?;
+        let loaded = PEOPLE.load(&store, b"john")?;
+        assert_eq!(person_data, loaded);
+
+    }
+
 }
